@@ -1,16 +1,31 @@
 import React,{useState} from "react";
 import {v4 as uuid} from "uuid";
 import {toast} from "react-hot-toast";
+import {useNavigate} from "react-router-dom";
 
 function Home() {
  const [roomId,setRoomId]=useState("");
  const [username,setUserName]=useState("");
+ const navigate=useNavigate();
+
  const generateRoomid=(e)=>{
   e.preventDefault();
   const id=uuid();
   setRoomId(id);
   toast.success("Room ID is generated");
- }
+ };
+ const joinRoom=()=>{
+ 
+  if(!roomId || !username){
+    toast.error("Both fields are required");
+    return;
+  }
+    navigate(`/editor/${roomId}`,{
+      state:{username},
+      
+    });
+    toast.success("Room is created");
+ };
 
   return (
     <div className="container-fluid">
@@ -24,6 +39,8 @@ function Home() {
 
               <div className="form-group">
                 <input
+                value={username}
+                onChange={(e)=>setUserName(e.target.value)}
                   type="text"
                   placeholder="Username"
                   className="mb-2 form-control"
@@ -38,7 +55,7 @@ function Home() {
                   className="mb-4 form-control"
                 ></input>
               </div>
-              <button style={{ backgroundColor: '#1E90FF', color: 'white' }} className="btn btn-md mb-3 btn-block">JOIN</button>
+              <button onClick={joinRoom} style={{ backgroundColor: '#1E90FF', color: 'white' }} className="btn btn-md mb-3 btn-block">JOIN</button>
               <p className="mt-3 text-light"> Don't have a room Id? 
                 <span style={{ color: '#1E90FF',cursor:"pointer" }}
                 onClick={generateRoomid}
