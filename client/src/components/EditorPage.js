@@ -1,12 +1,77 @@
-import React,{useState} from "react";
+import React,{useEffect, useState,useRef} from "react";
 import Client from './Client.js';
 import Editor from './Editor.js';
+import { initSocket } from "../socket.js";
+import { useNavigate,useLocation,useParams ,Navigate} from "react-router-dom";
+import toast from "react-hot-toast";
+
 function EditorPage() {
+    
     const [clients,setClient]=useState([
-        {socketId:1,username:"Radha"},
-        {socketId:2,username:"Krishna"},
-     
     ]);
+    const socketRef=useRef(null);
+    const codeRef=useRef(null);    
+    const location=useLocation();
+    const { roomId }=useParams();
+    const navigate=useNavigate();
+    useEffect(()=>{                                   //jb editor page render hoga tb connection established hoga with backend i.e tb initsocket run krega
+        const init=async()=>{
+           socketRef.current=await initSocket();      //jb initSocket call hoga tb backend se connection hojayga
+           socketRef.current.on('connect_error',(err)=>handleError(err));
+           socketRef.current.on('connect_failed',(err)=>handleError(err));
+           
+           const handleError=(e)=>{
+            console.log('socket error=>',e);
+            toast.error("Socket connection failed");
+            navigate("/");
+           }
+
+           socketRef.current.emit('join',{           
+            roomId,
+            username:location.state?.username,
+           });
+            
+           socketRef.current.on("joined",({clients,username,socketId})=>{         
+            
+           if(username!==location.state?.username){
+            toast.success(`${username} joined`);
+           
+           }
+           setClient(clients);
+           socketRef.current.emit('sync-code',{
+            code:codeRef.current,
+            socketId,
+
+           });
+           
+
+        });     
+        //disconnected
+        socketRef.current.on('disconnected',({socketId,username})=>{
+          toast.success(`${username} left the room`);
+
+          setClient((prev)=>{                      //sidebar me se user ko remove krna pdega ,uska data setClient me he to usme se remove krege
+            return prev.filter(
+              (client)=>client.socketId!=socketId
+            )
+          })
+        })    
+
+        };
+        init();
+
+        return ()=>{
+          socketRef.current.disconnect();
+          socketRef.current.off('joined');
+          socketRef.current.off("disconnected");
+        };
+    },[]);
+
+
+
+    if(!location.state){
+        return <Navigate to="/" />
+    }
   return (
     <div className="container-fluid vh-100">
       <div className="row h-100">
@@ -36,7 +101,7 @@ function EditorPage() {
 
         {/* Editor */}
         <div className="col-md-10 text-light d-flex flex-column h-100">
-         <Editor/>
+         <Editor socketRef={socketRef} roomId={roomId} onCodeChange={(code)=> (codeRef.current=code)}/>
         </div>
       </div>
     </div>
