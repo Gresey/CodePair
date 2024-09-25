@@ -33,8 +33,8 @@ function Home() {
         <div className="col-12 col-md-4">
           <div className="card shadow-sm p-2 mb-5 bg-secondary rounded">
             <div className="card-body text-center bg-dark p-4">
-              <h1 className="text-white mb-4">Welcome to Code Editor</h1>
-             
+              <h2 className="text-white mb-3">Welcome to CodePair</h2>
+              <p className="text-light">A Platform for Pair Programmers, collaborate in real time, make video calls, leave inline comments</p>
               <h5 className="text-light mb-4">Enter the Room ID</h5>
 
               <div className="form-group">

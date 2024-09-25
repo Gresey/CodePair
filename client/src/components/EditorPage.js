@@ -87,13 +87,15 @@ function EditorPage() {
       <div className="row h-100">
         <div
           className="col-md-2 bg-dark text-light d-flex flex-column h-100"
-          style={{ boxShadow: "2px 0px 4px rgba(0,0,0,0.1)" }}
-        >
-          <h3 className="p-3">Members</h3>
-          <hr/>
+          style={{ boxShadow: "2px 0px 4px rgba(0,0,0,0.1)" }} >
+            <h3 className=" mt-3">CodePair</h3>
+            <hr/>
+          <h5 className="p-1 md-3">Members</h5>
+          
           
           {/* client list container */}
-          <div className="d-flex flex-column overflow-auto">
+          <div className="d-flex flex-column overflow-auto p-2
+          ">
             {clients.map((client) => (
                 <Client key={client.socketId} username={client.username}/>
         ))}

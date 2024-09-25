@@ -56,7 +56,9 @@ function Editor({socketRef,roomId,onCodeChange}) {
        };
   },[socketRef.current]);
   return (
+
     <div style={{ height:"600px"}}>
+     
       <textarea id="realTimeEditor"></textarea>
     </div>
   )
