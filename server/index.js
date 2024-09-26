@@ -45,6 +45,11 @@ io.on('connection', (socket) => {
     socket.on("sync-code",({socketId,code})=>{                 //agr new user connect hua to jo editor pr already changes the use show honge isse
         io.to(socketId).emit("code-change",{code});              // emit changes for particular user who have socketId as provided
     });
+     // Handle adding comments
+     socket.on('add-comment', ({ roomId, comment }) => {
+        console.log("New comment received:", comment); // Log the comment
+        io.to(roomId).emit('add-comment', { comment });
+    });
 
     socket.on('disconnecting', () => {
         const rooms =[...socket.rooms];
