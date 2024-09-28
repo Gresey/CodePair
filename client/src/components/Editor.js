@@ -105,7 +105,7 @@ const Editor = forwardRef(({ socketRef, roomId, onCodeChange, onCommentsChange }
   }, [socketRef.current]);
 
   return (
-    <div style={{ height: "600px" }}>
+    <div className="mt-1 pt-2" style={{ height: "710px" }}>
       <textarea id="realTimeEditor"></textarea>
     </div>
   );

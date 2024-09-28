@@ -8,6 +8,8 @@ import toast from "react-hot-toast";
 function EditorPage() {
   const [clients, setClients] = useState([]);
   const [comments, setComments] = useState([]); 
+  const [chatMessages, setChatMessages] = useState([]); 
+  const [newMessage, setNewMessage] = useState("");
   const socketRef = useRef(null);
   const codeRef = useRef(null);
   const editorRef = useRef(null);  
@@ -61,6 +63,10 @@ function EditorPage() {
           addComment(text, lineNumber, user, id);
         }
       });
+
+      socketRef.current.on('chat-message', ({ username, message }) => {
+        setChatMessages((prev) => [...prev, { username, message }]);
+      });
     };
 
     init();
@@ -70,6 +76,7 @@ function EditorPage() {
       socketRef.current.off('joined');
       socketRef.current.off("disconnected");
       socketRef.current.off('add-comment');
+      socketRef.current.off('chat-message');
     };
   }, []);
 
@@ -109,69 +116,102 @@ function EditorPage() {
     }
   };
 
+  // Handle sending a chat message
+  const sendMessage = () => {
+    if (newMessage.trim()) {
+      const messageData = { username: location.state?.username, message: newMessage.trim() };
+      socketRef.current.emit('chat-message', messageData);
+ 
+      setNewMessage(""); // Clear the message input
+    }
+  };
+
   return (
-    <div className="container-fluid vh-100">
+    <div className="container-fluid vh-100 bg-dark text-light">
       <div className="row h-100">
         <div
-          className="col-md-2 bg-dark text-light d-flex flex-column h-100"
+          className="col-md-2 bg-dark d-flex flex-column h-100"
           style={{ boxShadow: "2px 0px 4px rgba(0,0,0,0.1)" }}>
-          <h3 className="mt-3">CodePair</h3>
+          <h3 className="mt-3 text-light">CodePair</h3>
           <hr />
           <h5 className="p-1 md-3">Members</h5>
-
-          {/* client list container */}
           <div className="d-flex flex-column overflow-auto p-2">
             {clients.map((client) => (
               <Client key={client.socketId} username={client.username} />
             ))}
           </div>
-
-          {/* buttons */}
           <div className="mt-auto">
             <hr />
-            <button className="btn btn-outline-success" onClick={copyRoomId}>Copy Room Id</button>
-            <button onClick={leaveRoom} className="btn btn-danger mt-2 mb-2 px-3 btn-block">
+            <button className="btn btn-success mb-2" onClick={copyRoomId}>Copy Room Id</button>
+            <button onClick={leaveRoom} className="btn btn-danger mb-2 btn-block">
               Leave Room
             </button>
-            <button className="btn btn-outline-primary m-1">Video Call</button>
-          </div>
+              </div>
         </div>
 
-        {/* Editor */}
-        <div className="col-md-8 text-light d-flex flex-column h-100">
+        <div className="col-md-7 d-flex flex-column h-100">
           <Editor
             socketRef={socketRef}
             roomId={roomId}
             onCodeChange={(code) => (codeRef.current = code)}
-            onCommentsChange={(updatedComments) => setComments(updatedComments)} // Handle comment updates
-            ref={editorRef}  // Pass the ref for scrolling
+            onCommentsChange={(updatedComments) => setComments(updatedComments)} 
+            ref={editorRef}
           />
         </div>
 
-        {/* Comments Sidebar */}
-        <div className="col-md-2 bg-dark text-light h-100">
-          <h5 className="p-1 md-3">Comments</h5>
-          <ul className="list-group">
-            {comments.map((comment) => (
-              <li key={comment.id} className="list-group-item">
-                <div>
-                  <strong>User:</strong> {comment.user}
+        {/* Comments and Chat Section */}
+        <div className="col-md-3 p-2 bg-dark d-flex flex-column h-100"  
+             style={{ boxShadow: "-2px 0px 4px rgba(0,0,0,0.1)" }}> {/* Added the boxShadow here */}
+          {/* Comments Section */}
+          <h5 className="p-1">Comments</h5>
+          <div className="comments-section overflow-auto" style={{ flex: 1, marginBottom: '10px' }}>
+            <ul className="list-group">
+              {comments.map((comment) => (
+                <li key={comment.id} className="list-group-item bg-secondary text-light mb-2">
+                  <div>
+                    <strong>User:</strong> {comment.user}
+                  </div>
+                  <div>
+                    <strong>Comment:</strong> {comment.comment}
+                  </div>
+                  <button
+                    className="btn btn-sm btn-primary mt-2"
+                    onClick={() => {
+                      editorRef.current.scrollToLine(comment.lineNumber);
+                    }}>
+                    Line {comment.lineNumber + 1}
+                  </button>
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          {/* Chat Section */}
+          <hr />
+          <h5 className="">Chat</h5>
+          <div className="chat-box overflow-auto" style={{ flex: 1, marginBottom: '10px', padding: '10px' }}>
+            <div className="d-flex flex-column">
+              {chatMessages.map((msg, index) => (
+                <div
+                  key={index}
+                  className={`message-bubble p-2 mb-1 ${msg.username === location.state?.username ? 'align-self-end bg-primary text-white' : 'align-self-start bg-secondary text-white'}`}
+                  style={{ borderRadius: '10px', maxWidth: '75%' }}>
+                  <strong>{msg.username}: </strong> {msg.message}
                 </div>
-                <div>
-                  <strong>Comment:</strong> {comment.comment}
-                </div>
-                <button
-                  className="btn btn-sm btn-primary mt-2"
-                  onClick={() => {
-                    // Scroll to the line in the editor when the comment is clicked
-                    editorRef.current.scrollToLine(comment.lineNumber);
-                  }}
-                >
-                  Line {comment.lineNumber + 1}
-                </button>
-              </li>
-            ))}
-          </ul>
+              ))}
+            </div>
+          </div>
+          <div className="d-flex">
+            <input
+              type="text"
+              className="form-control"
+              value={newMessage}
+              onChange={(e) => setNewMessage(e.target.value)}
+              placeholder="Type a message"
+    
+            />
+            <button className="btn btn-sm btn-primary" onClick={sendMessage} style={{ padding: '10px 20px' }}>Send</button>
+          </div>
         </div>
       </div>
     </div>

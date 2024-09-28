@@ -50,6 +50,10 @@ io.on('connection', (socket) => {
         console.log("New comment received:", comment); // Log the comment
         io.to(roomId).emit('add-comment', { comment });
     });
+    socket.on('chat-message', ({ username, message }) => {
+        console.log(`${username} sent a message: ${message}`);
+        io.to([...socket.rooms][1]).emit('chat-message', { username, message });
+    });
 
     socket.on('disconnecting', () => {
         const rooms =[...socket.rooms];
