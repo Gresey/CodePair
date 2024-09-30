@@ -79,4 +79,9 @@ Make sure you have the following installed:
 
 3. Open your browser and navigate to `http://localhost:3000` to start using the application.
 
+### Future Enhancement
+Video Call Feature: Planning to integrate a video call feature so that users in the same room can have face-to-face communication while collaborating on the code. This would enhance real-time interaction and provide a better collaborative experience by allowing users to discuss code changes and ideas verbally.
+
+### Contributions
+Feel free to fork this repository, make your changes, and submit a pull request to contribute to the project.
 
